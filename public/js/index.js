@@ -44,6 +44,13 @@ window.addEventListener("DOMContentLoaded", function () {
     const signUpContainer = document.getElementById("signup");
     const signUpCloseBtn = document.getElementById("signup__close-btn");
 
+    // audio visualize
+    let audio = null;
+    let lyric = null;
+    let play = null;
+    let time = null;
+    let progresses = null;
+
     const socket = io("http://localhost:3000");
 
 
@@ -524,7 +531,7 @@ window.addEventListener("DOMContentLoaded", function () {
               receiverName: matchRequestReceiver
             });
             // Match! give a notification to myself
-            toastr.info(`There is new match! from ${matchRequestReceiver}`);
+            toastr.info(`There is new match! from ${matchRequestReceiverㄈㄈ}`);
           }
         }).catch(error => { });
       }
@@ -581,29 +588,44 @@ window.addEventListener("DOMContentLoaded", function () {
                 <source src=${user.user_music_clip} type="audio/mpeg" class="avatar" style="display: block;">
               Your browser does not support the audio element.
               </audio>
+              <section class="box">
+              <svg>
+                <linearGradient id="gradient">
+                  <stop offset="0%" stop-color="red" />
+                  <stop offset="50%" stop-color="blue" />
+                  <stop offset="100%" stop-color="green" />
+                </linearGradient>
+                <circle class="circle progress" cx="250" cy="250" r="225"></circle>
+                <circle class="circle blur progress" cx="250" cy="250" r="225"></circle>
+                <circle class="circle backcircle" cx="250" cy="250" r="225"></circle>
+              </svg>
+              <div class="texts">
+                <span class="time">00:00</span>
+                <div class="lyric"></div>
+                <div class="play"></div>
+              </div>
+              </section>
               </div>
               <span>${user.user_full_name}, ${user.user_age}</span>
             </div>`;
-            // cardList.innerHTML += `<div class="slide__audio js-audio">
-            // <audio class="slide__audio-player" controls="">
-            //    <source src="https://www.soundjay.com/nature/sounds/rain-01.mp3" type="audio/mpeg"/>
-            // </audio>
-            // <div class="audio__controls">
-            //    <svg version="1.1" id="circle" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100">
-            //       <path id="seekbar" fill="none" stroke-meterlimit="10" d="M50,2.9L50,2.9C76,2.9,97.1,24,97.1,50v0C97.1,76,76,97.1,50,97.1h0C24,97.1,2.9,76,2.9,50v0C2.9,24,24,2.9,50,2.9z"/>
-            //    </svg>
-            //    <svg xmlns="http://www.w3.org/2000/svg" class="equalizer" viewBox="0 0 100 100">
-            //       <g class="equalizer-group">
-            //          <rect class="bar"></rect>
-            //          <rect class="bar"></rect>
-            //          <rect class="bar"></rect>
-            //          <rect class="bar"></rect>
-            //          <rect class="bar"></rect>
-            //       </g>
-            //    </svg>
-            //    <div class="audio__slider"></div>
-            //    <button class="play-pause"></button>
-            // </div>`;
+            // cardList.innerHTML += `<audio src="../music/music-1673375057973.mp3" ></audio>
+            // <section class="box">
+            //   <svg>
+            //     <linearGradient id="gradient">
+            //       <stop offset="0%" stop-color="red" />
+            //       <stop offset="50%" stop-color="blue" />
+            //       <stop offset="100%" stop-color="green" />
+            //     </linearGradient>
+            //     <circle class="circle progress" cx="250" cy="250" r="225"></circle>
+            //     <circle class="circle blur progress" cx="250" cy="250" r="225"></circle>
+            //     <circle class="circle backcircle" cx="250" cy="250" r="225"></circle>
+            //   </svg>
+            //   <div class="texts">
+            //     <span class="time">00:00</span>
+            //     <div class="lyric"></div>
+            //     <div class="play"></div>
+            //   </div>
+            // </section>`;      
 
             } else {
             cardList.innerHTML += `<div class="main__card-item" data-id="${user.user_cometchat_uid}" data-name="${user.user_full_name}">
@@ -616,6 +638,60 @@ window.addEventListener("DOMContentLoaded", function () {
               <span>${user.user_full_name}, ${user.user_age}</span>
             </div>`;
           }
+
+          audio = document.querySelector('audio');
+          lyric = document.querySelector('.lyric');
+          play = document.querySelector('.play');
+          time = document.querySelector('.time');
+          progresses = Array.from(document.querySelectorAll('.progress'));
+
+          play.addEventListener('click', e => {
+            audio.play();
+            play.style.opacity = '0';
+            //play.style.pointerEvents = 'none';
+          })
+
+          audio.addEventListener('pause', e => {
+            play.style.opacity = '100';
+          });
+
+
+          // async function loadFile(fileName) {
+          //   return await fetch(fileName)
+          //     .then(data => data.text())
+          //     .then(data => data.trim().split("\n")) // break lines to array
+          //     .catch(err => console.error(err))
+          // }
+      
+          // async function start(e) {
+          //   let index = 1;
+          //   (await loadFile('lyric.lrc')).forEach(line => {
+          //     line = line.trim();
+          //     let minute = parseInt(line.substr(1, 2));
+          //     let second = parseInt(line.substr(4, 5));
+          //     if(isNaN(minute) || isNaN(second)) return;
+      
+          //     let text = line.substr(line.indexOf(']') + 1, line.length).trim();
+          //     setTimeout(() => {
+          //       lyric.style.transform = `rotateZ(${index++ * 360}deg)`;
+          //       lyric.innerText = text;
+          //     }, (second + (minute * 60)) * 1000);
+          //   })
+          // }
+      
+          setInterval(() => {
+            let current = Math.floor(audio.currentTime); // time of current playing music
+            let currentSmall = audio.currentTime;
+            let minute = Math.floor(current / 60);
+            let second = current % 60;
+            minute = minute < 10 ? '0' + minute : minute;
+            second = second < 10 ? '0' + second : second;
+            time.innerText = `${minute}:${second}`;
+            progresses.forEach(progress => {
+              progress.style.strokeDashoffset = 1414 - (1414 * ((currentSmall / audio.duration) * 100)) / 100;
+            })
+          }, 100); // this function run all second
+      
         });
         applySwing();
       }
@@ -831,81 +907,6 @@ window.addEventListener("DOMContentLoaded", function () {
     loadRecommendedUsers();
     loadFriends();
     //listenForNotifications();
-
-    "use strict";
-
-    $('.js-audio').each(function (index, el) {
-      initAudioPlayer($(this), index);
-    });
-    $('.audio__slider').roundSlider({
-      radius: 50,
-      value: 0,
-      startAngle: 90,
-      width: 5,
-      handleSize: '+6',
-      handleShape: 'round',
-      sliderType: 'min-range'
-    });
-    $('.audio__slider').on('drag, change', function (e) {
-      let $this = $(this);
-      let $elem = $this.closest('.js-audio');
-      updateAudio(e, $elem);
-      $this.addClass('active');
-    });
-    function updateAudio(e, $elem) {
-      console.log(e.handle.value);
-      let value = e.handle.value;
-      // var thisPlayer = el.find('.js-audio'),
-      var play = $elem.find('.play-pause'),
-        circle = $elem.find('#seekbar'),
-        getCircle = circle.get(0),
-        totalLength = getCircle.getTotalLength(),
-        //currentTime = $elem.find('audio')[0].currentTime,
-        maxduration = $elem.find('audio')[0].duration;
-      var y = value * maxduration / 100;
-      $elem.find('audio')[0].currentTime = y;
-    }
-    function initAudioPlayer(player) {
-      let audio = player.find('audio'),
-        play = player.find('.play-pause'),
-        circle = player.find('#seekbar'),
-        getCircle = circle.get(0),
-        totalLength = getCircle.getTotalLength();
-      circle.attr({
-        'stroke-dasharray': totalLength,
-        'stroke-dashoffset': totalLength
-      });
-      play.on('click', () => {
-        if (audio[0].paused) {
-          $('audio').each((index, el) => {
-            $('audio')[index].pause();
-          });
-          $('.js-audio').removeClass('playing');
-          audio[0].play();
-          player.removeClass('paused');
-          player.addClass('playing');
-        } else {
-          audio[0].pause();
-          player.removeClass('playing');
-          player.addClass('paused');
-        }
-      });
-      audio.on('timeupdate', () => {
-        let currentTime = audio[0].currentTime,
-          maxduration = audio[0].duration,
-          calc = totalLength - currentTime / maxduration * totalLength;
-        circle.attr('stroke-dashoffset', calc);
-        let value = Math.floor(currentTime / maxduration * 100);
-        var slider = audio.closest('.js-audio').find('.audio__slider');
-        $(slider).roundSlider('setValue', value);
-      });
-      audio.on('ended', () => {
-        player.removeClass('playing');
-        circle.attr('stroke-dashoffset', totalLength);
-      });
-    }
-
-
 
 
 
